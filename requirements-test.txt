@@ -1,4 +1,2 @@
 coverage
 pytest
-flake8
-black

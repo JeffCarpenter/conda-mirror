@@ -1,17 +1,10 @@
 from setuptools import find_packages, setup
-import versioneer
 
-try:
-    with open("README.md") as f:
-        long_description = f.read()
-except Exception:
-    long_description = ""
-    print("Failed to load README.md as long_description")
+with open("README.md") as f:
+    long_description = f.read()
 
 setup(
-    name="conda_mirror",
-    version=versioneer.get_version(),
-    cmdclass=versioneer.get_cmdclass(),
+    name="conda_mamba_downloader",
     author="Eric Dill",
     packages=find_packages(),
     author_email="eric.dill@maxpoint.com",
@@ -21,11 +14,16 @@ setup(
     url="https://github.com/regro/conda-mirror",
     platforms=["Linux", "Mac OSX", "Windows"],
     license="BSD 3-Clause",
+    use_scm_version={
+        "write_to": "conda_mamba_downloader/_version.py",
+        "write_to_template": '__version__ = "{version}"\n',
+    },
+    setup_requires=["setuptools_scm"],
     install_requires=["requests", "pyyaml", "tqdm"],
+    # Not available on pypi: ["mamba", "libmambapy"],
     entry_points={
         "console_scripts": [
-            "conda-mirror = conda_mirror.conda_mirror:cli",
-            "conda-diff-tar = conda_mirror.diff_tar:main",
+            "conda-mamba-download = conda_mamba_downloader.download:main",
         ]
     },
 )
