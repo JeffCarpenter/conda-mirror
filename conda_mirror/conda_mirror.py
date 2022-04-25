@@ -1054,8 +1054,15 @@ def main(
     # make final mirror list of not-blacklist + whitelist
     summary["blacklisted"].update(excluded_packages)
 
-    logger.info("BLACKLISTED PACKAGES")
-    logger.info(pformat(sorted(excluded_packages)))
+    blacklist_all = blacklist and "*" in [
+        pattern for bldict in blacklist for pattern in bldict.values()
+    ]
+    if blacklist_all:
+        logger.info("BLACKLISTED PACKAGES")
+        logger.info("*")
+    else:
+        logger.info("BLACKLISTED PACKAGES")
+        logger.info(pformat(sorted(excluded_packages)))
 
     # Get a list of all packages in the local mirror
     if dry_run:
