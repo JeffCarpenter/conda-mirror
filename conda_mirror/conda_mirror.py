@@ -90,6 +90,7 @@ def _match(all_packages: Dict[str, Dict[str, Any]], key_pattern_dict: Dict[str, 
     key_pattern_dict : Dictionary mapping keys to patterns
         The pattern may either be a glob expression or if the key is 'version' may also
         be a conda version specifier.
+        If the key is "filename" the repodata key (full package name) is used.
 
     Returns
     -------
@@ -120,9 +121,11 @@ def _match(all_packages: Dict[str, Dict[str, Any]], key_pattern_dict: Dict[str, 
         matchers[key] = matcher
 
     for pkg_name, pkg_info in all_packages.items():
+        pkg_info_augmented = pkg_info.copy()
+        pkg_info_augmented["filename"] = pkg_name
         # normalize the strings so that comparisons are easier
         if all(
-            matcher(str(pkg_info.get(key, "")).lower())
+            matcher(str(pkg_info_augmented.get(key, "")).lower())
             for key, matcher in matchers.items()
         ):
             matched.update({pkg_name: pkg_info})
