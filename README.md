@@ -4,20 +4,26 @@ Download conda packages and dependencies for mirroring in a local conda reposito
 
 This is based on a modified version of [conda-mirror](https://github.com/conda-incubator/conda-mirror)
 
-This uses the [mamba solver](https://github.com/mamba-org/mamba) to find all dependencies of a package or packages.
+This uses the [mamba solver](https://github.com/mamba-org/mamba) if installed to find all dependencies of a package or packages, otherwise the Conda solver is used.
+
+## Installation
+```
+git clone https://github.com/manics/conda-mamba-downloader
+pip install .
+```
 
 ## Usage
 
 E.g. Download `jupyterlab 3.*` for `linux-64`, using `./target` as the local conda repository:
 
 ```sh
-./download.py --platform linux-64 --target-directory ./target --channel conda-forge jupyterlab=3
+conda-mamba-download --platform linux-64 --target-directory ./target --channel conda-forge jupyterlab=3
 ```
 
 E.g. Download `jupyterlab 3.*` and `aws-session-manager-plugin` for `win-64`:
 
 ```sh
-./download.py --platform win-64 --target-directory ./target --channel conda-forge jupyterlab=3 aws-session-manager-plugin
+conda-mamba-download --platform win-64 --target-directory ./target --channel conda-forge jupyterlab=3 aws-session-manager-plugin
 ```
 
 Since two packages are specified the downloader will ensure both packages and dependencies are compatible with each other.

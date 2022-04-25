@@ -3,10 +3,12 @@
 
 import argparse
 import conda.api
-from .conda_mirror import _init_logger as conda_mirror_init_logger
-from .conda_mirror import main as conda_mirror_main
 import sys
 from tempfile import gettempdir
+
+from .conda_mirror import _init_logger as conda_mirror_init_logger
+from .conda_mirror import main as conda_mirror_main
+from . import __version__
 
 try:
     import libmambapy as mamba_api
@@ -75,10 +77,7 @@ def main(argv=None):
         help="Num of threads for validation. 1: Serial mode. 0: All available.",
     )
     parser.add_argument(
-        "--version",
-        action="store_true",
-        help="Print version and quit",
-        default=False,
+        "--version", action="version", version=f"%(prog)s {__version__}"
     )
     parser.add_argument(
         "--dry-run",
