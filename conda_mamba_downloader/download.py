@@ -227,7 +227,6 @@ def download(args, platform, specs):
             conda_mirror_args["whitelist"] = [{"filename": p} for p in pkgs]
 
             conda_mirror_main(**conda_mirror_args)
-            break
 
 
 if __name__ == "__main__":
