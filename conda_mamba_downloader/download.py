@@ -2,12 +2,19 @@
 # https://github.com/mamba-org/mamba/blob/micromamba-0.23.0/mamba/mamba/mamba.py
 
 import argparse
+import conda.api
 from .conda_mirror import _init_logger as conda_mirror_init_logger
 from .conda_mirror import main as conda_mirror_main
-import libmambapy as mamba_api
-from mamba import repoquery
 import sys
-from tempfile import TemporaryDirectory, gettempdir
+from tempfile import gettempdir
+
+try:
+    import libmambapy as mamba_api
+    import mamba.repoquery as mamba_repoquery
+
+    _MAMBA_ENABLED = True
+except ImportError:
+    _MAMBA_ENABLED = False
 
 
 def main(argv=None):
@@ -51,6 +58,15 @@ def main(argv=None):
     #     action="store",
     #     help="Path to the yaml config file",
     # )
+    parser.add_argument(
+        "--solver",
+        help=(
+            "Whether to use the mamba or conda solver. "
+            "Default is to use mamba if available, otherwise conda."
+        ),
+        choices=["auto", "conda", "mamba"],
+        default="auto",
+    )
     parser.add_argument(
         "--num-threads",
         action="store",
@@ -97,7 +113,6 @@ def main(argv=None):
     if not argv:
         argv = sys.argv
     args = parser.parse_args(argv[1:])
-    print(args)
     if len(args.platform) > 1:
         raise NotImplementedError("Multiple platforms not supported yet")
 
@@ -105,20 +120,38 @@ def main(argv=None):
         download(args, platform, args.packages)
 
 
-def download(args, platform, specs):
-    print(platform, specs)
-    # specs = ['jupyterlab>3', 'aws-session-manager-plugin']
-    channels = args.channel or ["conda-forge"]
-    pool = repoquery.create_pool(channels, platform, False)
+def _solve_conda(*, channels, platform, specs, tmpdir):
+    if platform == "noarch":
+        platforms = ["noarch"]
+    else:
+        platforms = [platform, "noarch"]
 
-    tmpdir = TemporaryDirectory()
-    package_cache = mamba_api.MultiPackageCache([tmpdir.name])
+    solver = conda.api.Solver(
+        prefix=tmpdir, channels=channels, subdirs=platforms, specs_to_add=specs
+    )
+    transaction = solver.solve_final_state()
+
+    packages = {}
+    for package in transaction:
+        ch = package["channel"]
+        filename = package["url"].rsplit("/", 2)[-1]
+        if ch.name not in packages:
+            packages[ch.name] = {}
+        if ch.platform not in packages[ch.name]:
+            packages[ch.name][ch.platform] = set()
+        packages[ch.name][ch.platform].add(filename)
+
+    return packages
+
+
+def _solve_mamba(*, channels, platform, specs, tmpdir):
+    pool = mamba_repoquery.create_pool(channels, platform, False)
+    package_cache = mamba_api.MultiPackageCache([tmpdir])
 
     solver_options = [(mamba_api.SOLVER_FLAG_ALLOW_UNINSTALL, 1)]
     solver = mamba_api.Solver(pool, solver_options)
 
     mamba_solve_specs = [mamba_api.MatchSpec(s).conda_build_form() for s in specs]
-
     solver.add_jobs(mamba_solve_specs, mamba_api.SOLVER_INSTALL)
 
     solved = solver.solve()
@@ -139,11 +172,34 @@ def download(args, platform, specs):
             packages[channel][platform] = set()
         packages[channel][platform].add(t[1])
 
-    # for channel, platforms in packages.items():
-    #     for platform, pkgs in platforms.items():
-    #         print(f"{channel}/{platform}")
-    #         for pkg in sorted(pkgs):
-    #             print(f"\t{pkg}")
+    return packages
+
+
+def download(args, platform, specs):
+    channels = args.channel
+    if not channels:
+        channels = ["conda-forge"]
+
+    if args.solver == "auto":
+        if _MAMBA_ENABLED:
+            solver = _solve_mamba
+        else:
+            solver = _solve_conda
+    elif args.solver == "mamba":
+        if not _MAMBA_ENABLED:
+            raise Exception("Mamba is not installed")
+        solver = _solve_mamba
+    else:
+        solver = _solve_conda
+    packages = solver(
+        channels=channels, platform=platform, specs=specs, tmpdir=args.temp_directory
+    )
+
+    for channel, platforms in packages.items():
+        for platform, pkgs in platforms.items():
+            print(f"{channel}/{platform}")
+            for pkg in sorted(pkgs):
+                print(f"\t{pkg}")
 
     conda_mirror_args = {
         # "upstream_channel":
