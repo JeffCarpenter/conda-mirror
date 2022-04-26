@@ -3,6 +3,7 @@
 
 import argparse
 import conda.api
+import os.path
 import sys
 from tempfile import gettempdir
 
@@ -32,7 +33,10 @@ def main(argv=None):
         "--target-directory",
         "-t",
         required=True,
-        help="The place where packages should be mirrored to",
+        help=(
+            "The place where packages should be mirrored to. "
+            "Packages will be under <target-directory>/<channel>/<platform>/"
+        ),
     )
     parser.add_argument(
         "--temp-directory",
@@ -133,7 +137,7 @@ def _solve_conda(*, channels, platform, specs, tmpdir):
     packages = {}
     for package in transaction:
         ch = package["channel"]
-        filename = package["url"].rsplit("/", 2)[-1]
+        filename = package["url"].rsplit("/", 1)[-1]
         if ch.name not in packages:
             packages[ch.name] = {}
         if ch.platform not in packages[ch.name]:
@@ -164,7 +168,8 @@ def _solve_mamba(*, channels, platform, specs, tmpdir):
 
     packages = {}
     for t in to_link:
-        channel, platform = t[0].rsplit("/", 1)
+        # t[0]: https://conda.anaconda.org/<channel>/<platform>
+        _, channel, platform = t[0].rsplit("/", 2)
         if channel not in packages:
             packages[channel] = {}
         if platform not in packages[channel]:
@@ -202,7 +207,7 @@ def download(args, platform, specs):
 
     conda_mirror_args = {
         # "upstream_channel":
-        "target_directory": args.target_directory,
+        # "target_directory":
         "temp_directory": args.temp_directory,
         # "platform":
         "num_threads": args.num_threads,
@@ -223,6 +228,9 @@ def download(args, platform, specs):
         for platform, pkgs in platforms.items():
             print(f"{channel}/{platform}")
             conda_mirror_args["upstream_channel"] = channel
+            conda_mirror_args["target_directory"] = os.path.join(
+                args.target_directory, channel
+            )
             conda_mirror_args["platform"] = platform
             conda_mirror_args["whitelist"] = [{"filename": p} for p in pkgs]
 

@@ -7,6 +7,7 @@ This is based on a modified version of [conda-mirror](https://github.com/conda-i
 This uses the [mamba solver](https://github.com/mamba-org/mamba) if installed to find all dependencies of a package or packages, otherwise the Conda solver is used.
 
 ## Installation
+
 ```
 git clone https://github.com/manics/conda-mamba-downloader
 pip install .
