@@ -6,6 +6,7 @@ import conda.api
 import os.path
 import sys
 from tempfile import gettempdir
+import yaml
 
 from .conda_mirror import _init_logger as conda_mirror_init_logger
 from .conda_mirror import main as conda_mirror_main
@@ -107,20 +108,44 @@ def main(argv=None):
         dest="show_progress",
         help="Do not display progress bars.",
     )
+    parser.add_argument("--file", help="environment YAML file")
     parser.add_argument(
         "packages",
-        nargs="+",
+        nargs="*",
         help="Package specifications",
     )
 
     if not argv:
         argv = sys.argv
     args = parser.parse_args(argv[1:])
-    if len(args.platform) > 1:
-        raise NotImplementedError("Multiple platforms not supported yet")
+
+    channels = set(args.channel or [])
+    specs = set(args.packages or [])
+    if args.file:
+        env_channels, env_specs = parse_environment_file(args.file)
+        channels.update(env_channels)
+        specs.update(env_specs)
 
     for platform in args.platform:
-        download(args, platform, args.packages)
+        download(args=args, platform=platform, channels=channels, specs=specs)
+
+
+def parse_environment_file(environment_file):
+    """
+    Parse the environment file and return a list of channels and package specs
+    """
+    channels = []
+    specs = []
+    with open(environment_file, "r") as f:
+        y = yaml.safe_load(f)
+    if "channels" in y:
+        channels = y["channels"]
+    if "dependencies" in y:
+        specs = y["dependencies"]
+    for spec in specs:
+        if isinstance(spec, dict):
+            raise Exception("pip dependencies not supported")
+    return channels, specs
 
 
 def _solve_conda(*, channels, platform, specs, tmpdir):
@@ -179,8 +204,7 @@ def _solve_mamba(*, channels, platform, specs, tmpdir):
     return packages
 
 
-def download(args, platform, specs):
-    channels = args.channel
+def download(*, args, platform, channels, specs):
     if not channels:
         channels = ["conda-forge"]
 
@@ -204,6 +228,10 @@ def download(args, platform, specs):
             print(f"{channel}/{platform}")
             for pkg in sorted(pkgs):
                 print(f"\t{pkg}")
+
+    if args.dry_run:
+        print("dry-run: exiting")
+        return
 
     conda_mirror_args = {
         # "upstream_channel":

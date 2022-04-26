@@ -19,8 +19,9 @@ setup(
         "write_to_template": '__version__ = "{version}"\n',
     },
     setup_requires=["setuptools_scm"],
-    install_requires=["conda", "pyyaml", "requests", "tqdm"],
-    # Optional (not on pypi): ["mamba", "libmambapy"],
+    install_requires=["pyyaml", "requests", "tqdm"],
+    # conda must be installed using conda not pip
+    # Optional (not on pypi): ["mamba", "libmambapy"]
     entry_points={
         "console_scripts": [
             "conda-mamba-download = conda_mamba_downloader.download:main",

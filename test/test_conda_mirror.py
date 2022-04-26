@@ -7,7 +7,7 @@ import sys
 
 from os.path import join
 
-from conda_mirror import conda_mirror
+from conda_mamba_downloader import conda_mirror
 
 import pytest
 
@@ -43,7 +43,7 @@ def test_match(repodata):
 
 def test_restore_required_dependencies(repodata):
     """Unit tests for internal _restore_required_dependencies function."""
-    from conda_mirror.conda_mirror import (
+    from conda_mamba_downloader.conda_mirror import (
         _match,
         _restore_required_dependencies as restore,
     )
