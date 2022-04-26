@@ -173,6 +173,8 @@ def _solve_conda(*, channels, platform, specs, tmpdir):
 
 
 def _solve_mamba(*, channels, platform, specs, tmpdir):
+    assert _MAMBA_ENABLED
+
     pool = mamba_repoquery.create_pool(channels, platform, False)
     package_cache = mamba_api.MultiPackageCache([tmpdir])
 
@@ -188,7 +190,11 @@ def _solve_mamba(*, channels, platform, specs, tmpdir):
         # print(solver.all_problems_to_str())
         raise Exception("Unable to solve")
 
-    transaction = mamba_api.Transaction(solver, package_cache, [])
+    # Todo: should it be two or three arguments?
+    try:
+        transaction = mamba_api.Transaction(solver, package_cache)
+    except TypeError:
+        transaction = mamba_api.Transaction(solver, package_cache, [])
     mmb_specs, to_link, to_unlink = transaction.to_conda()
 
     packages = {}
