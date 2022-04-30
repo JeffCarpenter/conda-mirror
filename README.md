@@ -8,8 +8,13 @@ This uses the [mamba solver](https://github.com/mamba-org/mamba) if installed to
 
 ## Installation
 
+Create a new conda environment containing conda and optionally mamba (recommended as it's much faster), then install conda-downloader from source:
+
 ```
+conda create -n downloader-env conda mamba
+conda activate downloader-env
 git clone https://github.com/manics/conda-downloader
+cd conda-downloader
 pip install .
 ```
 
