@@ -4,18 +4,17 @@ with open("README.md") as f:
     long_description = f.read()
 
 setup(
-    name="conda_mamba_downloader",
-    author="Eric Dill",
+    name="conda-downloader",
+    author="Simon Li",
     packages=find_packages(),
-    author_email="eric.dill@maxpoint.com",
-    description="Mirror an upstream conda channel to a local directory",
+    description="Recursively download a Conda package and dependencies",
     long_description=long_description,
     long_description_content_type="text/markdown",
-    url="https://github.com/regro/conda-mirror",
+    url="https://github.com/manics/conda-mirror",
     platforms=["Linux", "Mac OSX", "Windows"],
     license="BSD 3-Clause",
     use_scm_version={
-        "write_to": "conda_mamba_downloader/_version.py",
+        "write_to": "conda_downloader/_version.py",
         "write_to_template": '__version__ = "{version}"\n',
     },
     setup_requires=["setuptools_scm"],
@@ -24,7 +23,7 @@ setup(
     # Optional (not on pypi): ["mamba", "libmambapy"]
     entry_points={
         "console_scripts": [
-            "conda-mamba-download = conda_mamba_downloader.download:main",
+            "conda-download = conda_downloader.download:main",
         ]
     },
 )

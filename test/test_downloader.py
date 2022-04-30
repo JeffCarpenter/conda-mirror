@@ -1,5 +1,5 @@
 import pytest
-from conda_mamba_downloader import download
+from conda_downloader import download
 
 
 def test_parse_environment_file(tmpdir):

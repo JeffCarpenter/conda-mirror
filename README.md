@@ -9,7 +9,7 @@ This uses the [mamba solver](https://github.com/mamba-org/mamba) if installed to
 ## Installation
 
 ```
-git clone https://github.com/manics/conda-mamba-downloader
+git clone https://github.com/manics/conda-downloader
 pip install .
 ```
 
@@ -18,13 +18,13 @@ pip install .
 E.g. Download `jupyterlab 3.*` for `linux-64`, using `./target` as the local conda repository:
 
 ```sh
-conda-mamba-download --platform linux-64 --target-directory ./target --channel conda-forge jupyterlab=3
+conda-download --platform linux-64 --target-directory ./target --channel conda-forge jupyterlab=3
 ```
 
 E.g. Download `jupyterlab 3.*` and `aws-session-manager-plugin` for `win-64`:
 
 ```sh
-conda-mamba-download --platform win-64 --target-directory ./target --channel conda-forge jupyterlab=3 aws-session-manager-plugin
+conda-download --platform win-64 --target-directory ./target --channel conda-forge jupyterlab=3 aws-session-manager-plugin
 ```
 
 Since two packages are specified the downloader will ensure both packages and dependencies are compatible with each other.
